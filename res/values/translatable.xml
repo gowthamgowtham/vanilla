@@ -253,4 +253,8 @@ THE SOFTWARE.
 	<string name="filebrowser_start">Filebrowser home</string>
 	<string name="customize_filebrowser_start">Filebrowser starts at this directory</string>
 	<string name="select">Select</string>
+	<string name="bassboost_effect_title">Enable Bass boost</string>
+	<string name="bassboost_effect_summary">Boosts low frequency sound output</string>
+	<string name="bassboost_level_title">Bass boost level</string>
+	<string name="bassboost_level_summary">Enter the bass strength (0 - min, 1000 - max)</string>
 </resources>

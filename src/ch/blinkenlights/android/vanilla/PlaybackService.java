@@ -43,6 +43,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.audiofx.AudioEffect;
+import android.media.audiofx.BassBoost;
+import android.media.audiofx.Equalizer;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -379,6 +381,11 @@ public final class PlaybackService extends Service
 	
 	private BastpUtil mBastpUtil;
 	
+	/** Enables bass boost effect if true */
+	private boolean mBassBoostEffect;
+	private BassBoost mAudioEffect;
+	
+	
 	@Override
 	public void onCreate()
 	{
@@ -390,6 +397,8 @@ public final class PlaybackService extends Service
 		int state = loadState();
 
 		mMediaPlayer = getNewMediaPlayer();
+		mAudioEffect = createAudioEffect();
+		setAudioEffect();
 		mBastpUtil = new BastpUtil();
 		
 		mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -779,6 +788,11 @@ public final class PlaybackService extends Service
 		} else if (PrefKeys.REPLAYGAIN_UNTAGGED_DEBUMP.equals(key)) {
 			mReplayGainUntaggedDeBump = settings.getInt(PrefKeys.REPLAYGAIN_UNTAGGED_DEBUMP, 150);
 			refreshReplayGainValues();
+		} else if(PrefKeys.ENABLE_BASSBOOST.equals(key)) {
+			mBassBoostEffect = settings.getBoolean(PrefKeys.ENABLE_BASSBOOST, true);
+			setAudioEffect();
+		} else if(PrefKeys.BASSBOOST_LEVEL.equals(key)) {
+			setBassBoostLevel();
 		}
 
 		CompatFroyo.dataChanged(this);
@@ -849,14 +863,48 @@ public final class PlaybackService extends Service
 		return state;
 	}
 
+	private BassBoost createAudioEffect() {
+		if(mMediaPlayer==null)
+			return null;
+		
+		BassBoost bb = null;
+		if(mAudioEffect==null) {
+			bb = new BassBoost(Integer.MAX_VALUE, mMediaPlayer.getAudioSessionId());
+			if(bb.getStrengthSupported()) 
+				bb.setStrength((short)1000);
+			mAudioEffect = bb;
+		}
+		
+		return mAudioEffect;
+	}
+	
+	private void setAudioEffect() {
+		Log.d("Bassboost", "setAudioEffect called");
+		if(mMediaPlayer==null || mAudioEffect==null)
+			return;
+		Log.d("Bassboost", "Setting bassboost to " + mBassBoostEffect);
+		int ok = mAudioEffect.setEnabled(mBassBoostEffect);
+		Log.d("Bassboost", "Bassboost status = " + ok);
+	}
+	
+	private void setBassBoostLevel() {
+		Log.d("Bassboost", "setBassBoostLevel called");
+		if(mMediaPlayer==null || mAudioEffect==null)
+			return;
+		int level = Integer.parseInt(getSettings(this).getString(PrefKeys.BASSBOOST_LEVEL, "500"));
+		Log.d("Bassboost", "Setting bassboost level to " + level);
+		mAudioEffect.setStrength((short)level);
+	}
+	
 	private void processNewState(int oldState, int state)
 	{
 		int toggled = oldState ^ state;
 
 		if ((toggled & FLAG_PLAYING) != 0) {
 			if ((state & FLAG_PLAYING) != 0) {
-				if (mMediaPlayerInitialized)
+				if (mMediaPlayerInitialized) {
 					mMediaPlayer.start();
+				}
 
 				if (mNotificationMode != NEVER)
 					startForeground(NOTIFICATION_ID, createNotification(mCurrentSong, mState));
@@ -1003,6 +1051,7 @@ public final class PlaybackService extends Service
 	 */
 	public int play()
 	{
+		
 		synchronized (mStateLock) {
 			if ((mState & FLAG_EMPTY_QUEUE) != 0) {
 				setFinishAction(SongTimeline.FINISH_RANDOM);
@@ -1013,6 +1062,17 @@ public final class PlaybackService extends Service
 			int state = updateState(mState | FLAG_PLAYING);
 			userActionTriggered();
 			return state;
+		}
+	}
+
+	private void dumpEqualizers() {
+		if(mMediaPlayer==null)
+			return;
+		Equalizer eq = new Equalizer(0, mMediaPlayer.getAudioSessionId());
+		short numberOfPresets = eq.getNumberOfPresets();
+		Log.d("Equalizer", "# Presets " + numberOfPresets);
+		for(short i=0; i<numberOfPresets; ++i) {
+			Log.d("Equalizer", "Preset " + eq.getPresetName(i));
 		}
 	}
 

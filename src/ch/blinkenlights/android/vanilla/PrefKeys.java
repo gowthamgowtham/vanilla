@@ -61,4 +61,6 @@ public class PrefKeys {
 	public static final String ENABLE_ALBUM_REPLAYGAIN = "enable_album_replaygain";
 	public static final String REPLAYGAIN_BUMP = "replaygain_bump";
 	public static final String REPLAYGAIN_UNTAGGED_DEBUMP = "replaygain_untagged_debump";
+	public static final String ENABLE_BASSBOOST = "bassboost_effect";
+	public static final String BASSBOOST_LEVEL = "bassboost_level";
 }

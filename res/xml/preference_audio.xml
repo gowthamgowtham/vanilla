@@ -48,6 +48,18 @@ THE SOFTWARE.
 		android:title="@string/headset_play_title"
 		android:summary="@string/headset_play_summary"
 		android:defaultValue="false" />
+	<CheckBoxPreference 
+	    android:key="bassboost_effect"
+	    android:title="@string/bassboost_effect_title"
+	    android:summary="@string/bassboost_effect_summary"
+	    android:defaultValue="true" />
+	<EditTextPreference 
+	    android:key="bassboost_level" android:selectable="true"
+		android:title="@string/bassboost_level_title"
+		android:summary="@string/bassboost_level_summary"
+		android:defaultValue="500"
+		android:dependency="bassboost_effect"
+		android:inputType="number" />
 	<PreferenceScreen
 		android:title="@string/replaygain"
 		android:summary="@string/replaygain_summary">
@@ -55,5 +67,6 @@ THE SOFTWARE.
 			android:targetPackage="ch.blinkenlights.android.vanilla"
 			android:targetClass="ch.blinkenlights.android.vanilla.PreferencesActivity$ReplayGainActivity" />
 	</PreferenceScreen>
+	
 
 </PreferenceScreen>
